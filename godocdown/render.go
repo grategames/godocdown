@@ -34,6 +34,33 @@ func renderFunctionSectionTo(writer io.Writer, list []*doc.Func, inTypeSection b
 	}
 }
 
+func renderLinksSectionTo(writer io.Writer, doc *_document) {
+	counter := 1
+	for _, entry := range doc.pkg.Funcs {
+		counter++
+		fmt.Fprintf(writer, "[func  %s](#toc_%s)  \n", entry.Name, fmt.Sprint(counter))
+	}
+	for _, entry := range doc.pkg.Types {
+		counter++
+		fmt.Fprintf(writer, "[type  %s](#toc_%s)  \n", entry.Name, fmt.Sprint(counter))
+		
+		for _, entry := range entry.Funcs {
+			counter++
+			fmt.Fprintf(writer, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [func  %s](#toc_%s)  \n", entry.Name, fmt.Sprint(counter))
+		}
+		
+		for _, entry := range entry.Methods {
+			counter++
+			receiver := " "
+			if entry.Recv != "" {
+				receiver = fmt.Sprintf("(%s) ", entry.Recv)
+			}
+			fmt.Fprintf(writer, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [func %s%s](#toc_%s)  \n", receiver, entry.Name, fmt.Sprint(counter))
+		}
+	}
+	fmt.Fprint(writer, "\n")
+}
+
 func renderTypeSectionTo(writer io.Writer, list []*doc.Type) {
 
 	header := RenderStyle.TypeHeader
@@ -65,6 +92,9 @@ func renderSynopsisTo(writer io.Writer, document *_document) {
 }
 
 func renderUsageTo(writer io.Writer, document *_document) {
+	// Links
+	renderLinksSectionTo(writer, document)
+
 	// Usage
 	fmt.Fprintf(writer, "%s\n", RenderStyle.UsageHeader)
 
